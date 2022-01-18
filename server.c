@@ -82,6 +82,34 @@ char *room;
 // 	pthread_mutex_unlock(&clients_mutex);
 // }
 
+// char *encode_server(int c_x, int c_y, int b_x, int b_y) {       // c_x, c_y is position of paddles, b_x, b_y is position of ball
+//     char client_x[100], client_y[100], ball_x[100], ball_y[100];
+//     sprintf(client_x, "%d", c_x);
+//     sprintf(client_y, "%d", c_y);
+//     sprintf(ball_x, "%d", b_x);
+//     sprintf(ball_y, "%d", b_y);
+//     char *result = client_x;
+//     strcat(result, ",");
+//     strcat(result, client_y);
+//     strcat(result, ";");
+//     strcat(result, ball_x);
+//     strcat(result, ",");
+//     strcat(result, ball_y);
+//     return result;
+// }
+
+// int clientX, clientY; // vi tri paddle cua client 
+
+// void decode_server(char data[256]) { 
+//     char *tempX, *tempY, dataX[100], dataY[100], *ptr;
+//     tempX = strtok(data, ",");
+//     tempY = strtok(NULL, ",");
+//     strcpy(dataX, tempX);
+//     strcpy(dataY, tempY);
+//     clientX = strtol(dataX, &ptr, 10);
+//     clientY = strtol(dataY, &ptr, 10);
+// }
+
 void* client_handler(void* arg) {
     // Read data from file
     FILE *fp;
