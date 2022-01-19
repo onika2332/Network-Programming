@@ -24,14 +24,17 @@
 #define RIGHT 1
 
 struct clientInfo {
-    int clientfd;
-    int rivalfd;
-    int ready;
-    int pos;
+    int clientfd; // socket_fd[1]
+    int rivalfd; // socket_fd[2]
+    int ready; // 
+    int pos; // left ? right
 };
 
 typedef struct clientInfo clientInfo;
 static _Atomic unsigned int cli_count = 0;
+Paddle *left, *right;
+Ball* ball;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // static int uid = 10;
 
 // /* Client structure */
@@ -97,33 +100,33 @@ char *room;
 // 	pthread_mutex_unlock(&clients_mutex);
 // }
 
-// char *encode_server(int c_x, int c_y, int b_x, int b_y) {       // c_x, c_y is position of paddles, b_x, b_y is position of ball
-//     char client_x[100], client_y[100], ball_x[100], ball_y[100];
-//     sprintf(client_x, "%d", c_x);
-//     sprintf(client_y, "%d", c_y);
-//     sprintf(ball_x, "%d", b_x);
-//     sprintf(ball_y, "%d", b_y);
-//     char *result = client_x;
-//     strcat(result, ",");
-//     strcat(result, client_y);
-//     strcat(result, ";");
-//     strcat(result, ball_x);
-//     strcat(result, ",");
-//     strcat(result, ball_y);
-//     return result;
-// }
+char *encode_server(int c_x, int c_y, int b_x, int b_y) {       // c_x, c_y is position of paddles, b_x, b_y is position of ball
+    char client_x[100], client_y[100], ball_x[100], ball_y[100];
+    sprintf(client_x, "%d", c_x);
+    sprintf(client_y, "%d", c_y);
+    sprintf(ball_x, "%d", b_x);
+    sprintf(ball_y, "%d", b_y);
+    char *result = client_x;
+    strcat(result, ",");
+    strcat(result, client_y);
+    strcat(result, ";");
+    strcat(result, ball_x);
+    strcat(result, ",");
+    strcat(result, ball_y);
+    return result;
+}
 
-// int clientX, clientY; // vi tri paddle cua client 
+int clientX, clientY; // vi tri paddle cua client 
 
-// void decode_server(char data[256]) { 
-//     char *tempX, *tempY, dataX[100], dataY[100], *ptr;
-//     tempX = strtok(data, ",");
-//     tempY = strtok(NULL, ",");
-//     strcpy(dataX, tempX);
-//     strcpy(dataY, tempY);
-//     clientX = strtol(dataX, &ptr, 10);
-//     clientY = strtol(dataY, &ptr, 10);
-// }
+void decode_server(char data[256]) { 
+    char *tempX, *tempY, dataX[100], dataY[100], *ptr;
+    tempX = strtok(data, ",");
+    tempY = strtok(NULL, ",");
+    strcpy(dataX, tempX);
+    strcpy(dataY, tempY);
+    clientX = strtol(dataX, &ptr, 10);
+    clientY = strtol(dataY, &ptr, 10);
+}
 
 
 void* client_handler(void* arg) {
@@ -290,19 +293,21 @@ void *listen_client(void *args){
             if(data != 0) { 
                 recv_data[data] = '\0';
                 if(strlen(recv_data) > 0) {
-                    //decode server
-                    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+                    
                     pthread_mutex_lock(&mutex);
+                    decode_server(recv_data);
                     if( client->pos == LEFT ) {
-                        displace(left, step, ROWS);
+                        left->center->x = clientX;
+                        left->center->y = clientY;
                         char* send_data = encode_server(
-                            right->center->x, 
-                            right->center->y, 
+                            left->center->x, 
+                            left->center->y, 
                             ball->center->x, 
                             ball->center->y);
                         write(client->rivalfd, send_data, strlen(send_data));
                     } else {
-                        displace(right, step, ROWS);
+                        right->center->x = clientX;
+                        right->center->y = clientY;
                         char* send_data = encode_server(
                             left->center->x, 
                             left->center->y, 
@@ -397,9 +402,9 @@ int main(int argc, char *argv[]) {
     }
 
 game_setup:
-    Paddle* left = setPaddle(1, ROWS/2, 2); // left paddle
-    Paddle* right = setPaddle( COLS - 2, ROWS/2, 2); // right paddle
-    Ball* ball = setBall( COLS/2, ROWS/2, 2, 2); // ball
+    left = setPaddle(1, ROWS/2, 2); // left paddle
+    right = setPaddle( COLS - 2, ROWS/2, 2); // right paddle
+    ball = setBall( COLS/2, ROWS/2, 2, 2); // ball
     int randomX = 2 + rand() % (4 + 1 - 1); // X : 2, 3, 4, 5
     int randomY = 2;
     ball->plus_x = ball->plus_x > 0 ? randomX : -1*randomX;

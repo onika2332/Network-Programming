@@ -5,7 +5,7 @@
 
 // we install paddle is a vertically-appearance string like "-----" or "====="
 typedef struct paddle {
-    int halfLength;
+    int halfLength; // 1/2 chieu dai
     Point* center;
     /* A paddle is a rectangle. Rectangle have 4 point (x1,y1) (x1+a,y1) (x1+a, y1-b) (x1,y1-b)
     in this case, x1 is left, y1 is top, x1 +a is right, y1-b is bottom*/
