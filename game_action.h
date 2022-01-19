@@ -33,14 +33,5 @@ int checkConflictWithWindow(Ball* b, int cols, int rows) {
     return 0;
 }
 
-void changeDirectionOfBall(Ball *b, int cols, int rows, Paddle* left, Paddle* right) {
-    if(checkConfilctWithLeftPaddle(b, left) || checkConfilctWithRightPaddle(b, right) ) {
-        b->plus_x = -1*b->plus_x;
-    } else if(checkConflictWithWindow(b, cols, rows)){
-        b->plus_y = -1*b->plus_y;
-    }
-    return;
-}
-
 
 #endif
